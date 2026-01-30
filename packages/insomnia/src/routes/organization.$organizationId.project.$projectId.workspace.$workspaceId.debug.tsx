@@ -1310,6 +1310,12 @@ const ScratchPadTutorialPanel = () => {
   const workspaceData = useWorkspaceLoaderData();
   const hasEnvironments = (workspaceData?.subEnvironments.length || 0) > 0;
 
+  useEffect(() => {
+    if (panel === 'environment' && hasEnvironments) {
+      navigate(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/environment`);
+    }
+  }, [panel, hasEnvironments, navigate, organizationId, projectId, workspaceId]);
+
   return (
     <>
       <GridList

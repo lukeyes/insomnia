@@ -1,6 +1,10 @@
 import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Link, Route, Routes, useLocation } from 'react-router';
+import { Link, redirect, Route, Routes, useLocation } from 'react-router';
+
+export async function clientLoader() {
+  return redirect('/organization');
+}
 
 import { InsomniaLogo } from '~/ui/components/insomnia-icon';
 import { TrailLinesContainer } from '~/ui/components/trail-lines-container';

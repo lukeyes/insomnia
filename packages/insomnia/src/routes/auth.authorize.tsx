@@ -14,6 +14,10 @@ import { getVaultKeyFromStorage } from '~/utils/vault';
 
 import type { Route } from './+types/auth.authorize';
 
+export async function clientLoader() {
+  return redirect('/organization');
+}
+
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.json();
 

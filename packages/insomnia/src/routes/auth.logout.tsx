@@ -12,7 +12,7 @@ interface LogoutData {
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = (await request.json()) as LogoutData;
   await logout(data.clearCredentials ?? false);
-  return redirect(href('/auth/login'));
+  return redirect('/organization');
 }
 
 export const useLogoutFetcher = createFetcherSubmitHook(

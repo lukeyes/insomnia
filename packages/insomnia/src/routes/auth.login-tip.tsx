@@ -1,5 +1,9 @@
 import { Heading } from 'react-aria-components';
-import { href, useNavigate } from 'react-router';
+import { href, redirect, useNavigate } from 'react-router';
+
+export async function clientLoader() {
+  return redirect('/organization');
+}
 
 const Component = () => {
   const navigate = useNavigate();

@@ -36,6 +36,10 @@ const GoogleIcon = (props: React.ReactSVGElement['props']) => {
   );
 };
 
+export async function clientLoader() {
+  return redirect('/organization');
+}
+
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
   const provider = data.get('provider');

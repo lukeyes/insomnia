@@ -333,7 +333,7 @@ const Component = ({ loaderData, params }: Route.ComponentProps) => {
               <NavLink
                 data-testid="project"
                 className="flex aspect-square h-7 shrink-0 items-center justify-center gap-2 rounded-xs px-1 py-1 text-sm text-(--color-font) ring-1 ring-transparent outline-hidden transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm) data-focused:outline-hidden"
-                to={`/organization/${organizationId}/project/${activeProject._id}`}
+                to={`/organization/${organizationId}/project/${activeProject._id}/workspace/${workspaceId}/debug`}
               >
                 <Icon className="text-xs" icon="chevron-left" />
               </NavLink>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Link, Tooltip, TooltipTrigger } from 'react-aria-components';
-import { Outlet } from 'react-router';
+import { Outlet, redirect } from 'react-router';
 
 import { useRootLoaderData } from '~/root';
 import { Hotkey } from '~/ui/components/hotkey';
@@ -8,6 +8,10 @@ import { Icon } from '~/ui/components/icon';
 import { InsomniaLogo } from '~/ui/components/insomnia-icon';
 import { showSettingsModal } from '~/ui/components/modals/settings-modal';
 import { TrailLinesContainer } from '~/ui/components/trail-lines-container';
+
+export async function clientLoader() {
+  return redirect('/organization');
+}
 
 const Component = () => {
   const { settings } = useRootLoaderData()!;
