@@ -77,11 +77,6 @@ export async function getAccountId() {
   return (await getUserSession())?.accountId;
 }
 
-/** Check if we (think) we have a session */
-export async function isLoggedIn() {
-  return false;
-}
-
 /** Log out and delete session data */
 export async function logout(clearCredentials = false) {
   const sessionId = await getCurrentSessionId();

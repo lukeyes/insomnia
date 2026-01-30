@@ -23,8 +23,6 @@ import type { SocketIORequest } from '~/models/socket-io-request';
 import type { WebSocketRequest } from '~/models/websocket-request';
 import { type Workspace } from '~/models/workspace';
 import type { WorkspaceMeta } from '~/models/workspace-meta';
-import { pushSnapshotOnInitialize } from '~/sync/vcs/initialize-backend-project';
-import { VCSInstance } from '~/sync/vcs/insomnia-sync';
 import { showResourceNotFoundToast } from '~/ui/components/toast-notification';
 import { createFetcherLoadHook } from '~/utils/router';
 
@@ -249,21 +247,7 @@ export async function clientLoader({ params, request }: Route.ClientLoaderArgs) 
     return collection;
   }
 
-  const userSession = await models.userSession.getOrCreate();
-  const isLoggedInIsCloudProjectAndIsNotGitRepo = userSession.id && activeProject.remoteId && !gitRepository;
-  let vcsVersion = null;
-  if (isLoggedInIsCloudProjectAndIsNotGitRepo) {
-    try {
-      const vcs = VCSInstance();
-      await vcs.switchAndCreateBackendProjectIfNotExist(workspaceId, activeWorkspace.name);
-      if (activeWorkspaceMeta.pushSnapshotOnInitialize) {
-        await pushSnapshotOnInitialize({ vcs, workspace: activeWorkspace, project: activeProject });
-      }
-      vcsVersion = await vcs.getVersion();
-    } catch (err) {
-      console.warn('Failed to initialize VCS', err);
-    }
-  }
+  const vcsVersion = null;
 
   const workspaces = await models.workspace.findByParentId(projectId);
 

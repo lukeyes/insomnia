@@ -8,7 +8,6 @@ import contextMenu from 'electron-context-menu';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { configureFetch } from 'insomnia-api';
 
-import { getCurrentSessionId } from '~/account/session';
 import { mainDatabase } from '~/common/database/database.main';
 import { registerPathHandlers } from '~/main/ipc/path';
 import { registerLLMConfigServiceAPI } from '~/main/llm-config-service';
@@ -248,15 +247,6 @@ const _launchApp = async () => {
           window.focus();
         } else {
           window = windowUtils.createWindowsAndReturnMain();
-        }
-        // Block imports when not logged in
-        const isImportDeeplink = url.includes('://app/import');
-        const isLoggedIn = (await getCurrentSessionId()) ? true : false;
-        const shouldShowLoginPrompt = isImportDeeplink && !isLoggedIn;
-        if (shouldShowLoginPrompt) {
-          const title = encodeURIComponent('You must be logged in to open this link');
-          const message = encodeURIComponent('Please log in and try again.');
-          return window.webContents.send('shell:open', `insomnia://app/alert?title=${title}&message=${message}`);
         }
         return window.webContents.send('shell:open', url);
       };

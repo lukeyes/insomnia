@@ -26,8 +26,6 @@ import { VaultKeyPanel } from './vault-key-panel';
 
 export const General: FC = () => {
   const { settings } = useRootLoaderData()!;
-  const isLoggedIn = false;
-
   return (
     <div className="relative p-4">
       <h2 className="sticky top-0 left-0 z-10 bg-(--color-bg) pt-2 pb-2 text-lg font-bold">Application</h2>
@@ -238,7 +236,7 @@ export const General: FC = () => {
           help="If checked, validates SSL certificates during authentication flows."
         />
       </div>
-      {isLoggedIn && <VaultKeyPanel />}
+      <VaultKeyPanel />
 
       <div className="form-row pad-top-sm">
         <TextArraySetting
@@ -290,21 +288,17 @@ export const General: FC = () => {
         placeholder="~/.insomnia:/other/path"
       />
 
-      {!isLoggedIn && (
-        <>
-          <h2 className="sticky top-0 left-0 z-10 bg-(--color-bg) pt-5 pb-2 text-lg font-bold">Network Activity</h2>
-          <BooleanSetting label="Send Anonymous Usage Statistics" setting="enableAnalytics" disabled={isLoggedIn} />
-          <div className="py-2 pl-5 text-sm opacity-50">
-            Help Kong improve its products by sending anonymous data about features and plugins used, hardware and
-            software configuration, statistics on number of requests, {strings.collection.plural.toLowerCase()},{' '}
-            {strings.document.plural.toLowerCase()}, etc.
-          </div>
-          <div className="py-2 pl-5 text-sm opacity-50">
-            Please note that this will not include personal data or any sensitive information, such as request data,
-            names, etc.
-          </div>
-        </>
-      )}
+      <h2 className="sticky top-0 left-0 z-10 bg-(--color-bg) pt-5 pb-2 text-lg font-bold">Network Activity</h2>
+      <BooleanSetting label="Send Anonymous Usage Statistics" setting="enableAnalytics" />
+      <div className="py-2 pl-5 text-sm opacity-50">
+        Help Kong improve its products by sending anonymous data about features and plugins used, hardware and
+        software configuration, statistics on number of requests, {strings.collection.plural.toLowerCase()},{' '}
+        {strings.document.plural.toLowerCase()}, etc.
+      </div>
+      <div className="py-2 pl-5 text-sm opacity-50">
+        Please note that this will not include personal data or any sensitive information, such as request data,
+        names, etc.
+      </div>
     </div>
   );
 };

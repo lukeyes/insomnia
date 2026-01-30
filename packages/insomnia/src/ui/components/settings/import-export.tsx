@@ -693,57 +693,11 @@ export const ImportExport: FC<Props> = ({ hideSettingsModal, onModalChange }) =>
     exportProjectToFile(projectName, workspacesForActiveProject);
     hideSettingsModal();
   };
-  const isLoggedIn = userSession.id || organizationId || activeProject;
   const isScratchPadWorkspace = isScratchpad(workspaceData?.activeWorkspace);
   const hasUntrackedWorkspaces = untrackedWorkspaces.length > 0;
   const hasUntrackedProjects = untrackedProjects.length > 0;
   const showImportButtons =
     !isScratchPadWorkspace && (activeProject || features.bulkImport.enabled || isEnterprisePlan);
-  if (!isScratchPadWorkspace && !isLoggedIn) {
-    return (
-      <Button
-        className="flex items-center justify-center gap-2 rounded-xs border border-solid border-(--hl-md) px-4 py-1 text-sm font-semibold text-(--color-font) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm)"
-        onPress={async () => {
-          const { filePaths, canceled } = await window.dialog.showOpenDialog({
-            properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
-            buttonLabel: 'Select',
-            title: 'Export All Insomnia Data',
-          });
-
-          if (canceled) {
-            return;
-          }
-
-          const [dirPath] = filePaths;
-
-          try {
-            dirPath &&
-              (await exportAllData({
-                dirPath,
-              }));
-          } catch (e) {
-            showModal(AlertModal, {
-              title: 'Export Failed',
-              message: 'An error occurred while exporting data. Please try again.',
-            });
-            console.error(e);
-          }
-
-          showModal(AlertModal, {
-            title: 'Export Complete',
-            message: 'All your data have been successfully exported',
-          });
-          window.main.trackSegmentEvent({
-            event: SegmentEvent.exportAllCollections,
-          });
-        }}
-        aria-label="Export all data"
-      >
-        <Icon icon="file-export" />
-        <span>Export all data {`(${workspaceCount} files)`}</span>
-      </Button>
-    );
-  }
 
   return (
     <Fragment>
