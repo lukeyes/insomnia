@@ -1307,6 +1307,8 @@ const ScratchPadTutorialPanel = () => {
   };
 
   const navigate = useNavigate();
+  const workspaceData = useWorkspaceLoaderData();
+  const hasEnvironments = (workspaceData?.subEnvironments.length || 0) > 0;
 
   return (
     <>
@@ -1327,6 +1329,9 @@ const ScratchPadTutorialPanel = () => {
         }}
       >
         {item => {
+          const isEnvironment = item.id === 'environment';
+          const title = isEnvironment && hasEnvironments ? 'Environments' : item.title;
+
           return (
             <GridListItem textValue={item.title} className="group outline-hidden select-none">
               <div className="relative flex h-12 w-full items-center gap-2 overflow-hidden px-4 text-(--hl) outline-hidden transition-colors select-none group-hover:bg-(--hl-xs) group-focus:bg-(--hl-sm) group-aria-selected:bg-(--hl-sm) group-aria-selected:text-(--color-font)">
@@ -1334,7 +1339,7 @@ const ScratchPadTutorialPanel = () => {
                   <Icon icon={item.icon} className="w-6" />
                 </span>
 
-                <span className="truncate">{item.title}</span>
+                <span className="truncate">{title}</span>
               </div>
             </GridListItem>
           );
