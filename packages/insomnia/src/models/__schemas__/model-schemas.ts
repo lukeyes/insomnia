@@ -71,4 +71,5 @@ export const environmentModelSchema: Schema<Environment> = {
       enabled: true,
     },
   ],
+  syncFilePath: () => '',
 };

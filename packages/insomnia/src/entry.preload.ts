@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, webUtils as webUtilities } from 'electron';
+import { contextBridge, ipcRenderer, type IpcRendererEvent, webUtils as webUtilities } from 'electron';
 
 import type { LLMBackend, LLMConfig, LLMConfigServiceAPI } from '~/main/llm-config-service';
 import type { GenerateMcpSamplingResponseFunction } from '~/plugins/types';
@@ -258,6 +258,12 @@ const main: Window['main'] = {
     ipcRenderer.invoke('generateCommitsFromDiff', input),
   generateMcpSamplingResponse: (parameters: Parameters<GenerateMcpSamplingResponseFunction>[0]) =>
     ipcRenderer.invoke('generateMcpSamplingResponse', parameters),
+  onEnvironmentSyncFileChange: (listener: (event: IpcRendererEvent, path: string) => void) => {
+    ipcRenderer.on('environment.syncFileChange', listener);
+    return () => ipcRenderer.removeListener('environment.syncFileChange', listener);
+  },
+  watchFile: (options: { path: string }) => ipcRenderer.invoke('watchFile', options),
+  unwatchFile: (options: { path: string }) => ipcRenderer.invoke('unwatchFile', options),
 };
 
 ipcRenderer.on('hidden-browser-window-response-listener', event => {

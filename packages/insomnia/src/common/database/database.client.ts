@@ -70,6 +70,10 @@ export const database: IDatabase = {
     // No-op for renderer - change listeners are handled via IPC
   },
 
+  offChange: () => {
+    // No-op for renderer - change listeners are handled via IPC
+  },
+
   remove: async function <T extends BaseModel>(doc: T) {
     return window.database.invoke<void>('remove', doc);
   },

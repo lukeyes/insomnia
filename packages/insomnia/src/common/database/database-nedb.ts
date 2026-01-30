@@ -362,6 +362,10 @@ export const nedbDatabase: Omit<IDatabase, 'init'> & {
     changeListeners.push(callback);
   },
 
+  offChange: (callback: ChangeListener) => {
+    changeListeners = changeListeners.filter(l => l !== callback);
+  },
+
   /** remove doc and its descendants */
   remove: async function <T extends BaseModel>(doc: T) {
     const flushId = await database.bufferChanges();

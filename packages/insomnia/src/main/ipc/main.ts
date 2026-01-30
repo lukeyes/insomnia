@@ -175,6 +175,9 @@ export interface RendererToMainBridgeAPI {
     | { response: Awaited<ReturnType<GenerateMcpSamplingResponseFunction>>; error: undefined }
     | { response: undefined; error: string }
   >;
+  onEnvironmentSyncFileChange: (listener: (event: IpcRendererEvent, path: string) => void) => () => void;
+  watchFile: (options: { path: string }) => Promise<void>;
+  unwatchFile: (options: { path: string }) => Promise<void>;
 }
 
 export function registerMainHandlers() {
@@ -552,5 +555,33 @@ export function registerMainHandlers() {
         aiPluginName: AI_PLUGIN_NAME,
       });
     });
+  });
+
+  const watchers = new Map<string, fs.FSWatcher>();
+  ipcMainHandle('watchFile', async (event, options: { path: string }) => {
+    const filePath = options.path;
+    if (watchers.has(filePath)) {
+      return;
+    }
+    try {
+      const watcher = fs.watch(filePath, eventType => {
+        if (eventType === 'change') {
+          const window = BrowserWindow.fromWebContents(event.sender);
+          window?.webContents.send('environment.syncFileChange', filePath);
+        }
+      });
+      watchers.set(filePath, watcher);
+    } catch (err) {
+      console.error(`Failed to watch file ${filePath}`, err);
+    }
+  });
+
+  ipcMainHandle('unwatchFile', async (_, options: { path: string }) => {
+    const filePath = options.path;
+    const watcher = watchers.get(filePath);
+    if (watcher) {
+      watcher.close();
+      watchers.delete(filePath);
+    }
   });
 }

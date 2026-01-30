@@ -84,6 +84,27 @@ export const WorkspaceEnvironmentsEditModal = ({ onClose }: { onClose: () => voi
     d => d.type === EnvironmentKvPairDataType.SECRET,
   );
 
+  const handleLinkToFile = async (environment: Environment) => {
+    const options = {
+      title: 'Link Environment to File',
+      buttonLabel: 'Link',
+      filters: [
+        { name: 'JSON/YAML', extensions: ['json', 'yaml', 'yml'] },
+      ],
+    };
+    const { filePaths } = await window.dialog.showOpenDialog(options);
+    if (filePaths && filePaths.length > 0) {
+      const filePath = filePaths[0];
+      updateEnvironmentFetcher.submit({
+        organizationId,
+        projectId,
+        workspaceId,
+        environmentId: environment._id,
+        patch: { syncFilePath: filePath },
+      });
+    }
+  };
+
   const environmentActionsList: {
     id: string;
     name: string;
@@ -102,6 +123,12 @@ export const WorkspaceEnvironmentsEditModal = ({ onClose }: { onClose: () => voi
           environmentId: environment._id,
         });
       },
+    },
+    {
+      id: 'link-file',
+      name: 'Link to Local File',
+      icon: 'link',
+      action: (environment: Environment) => handleLinkToFile(environment),
     },
     {
       id: 'delete',
@@ -449,6 +476,28 @@ export const WorkspaceEnvironmentsEditModal = ({ onClose }: { onClose: () => voi
                         }}
                       />
                     </Heading>
+                    {selectedEnvironment?.syncFilePath && (
+                      <div className="flex items-center gap-1 text-xs text-(--hl) px-2">
+                        <Icon icon="link" />
+                        <span className="truncate max-w-[200px]" title={selectedEnvironment.syncFilePath}>
+                          {selectedEnvironment.syncFilePath}
+                        </span>
+                        <Button
+                          className="px-1 hover:text-(--color-danger)"
+                          onPress={() => {
+                            updateEnvironmentFetcher.submit({
+                              organizationId,
+                              projectId,
+                              workspaceId,
+                              environmentId: selectedEnvironment._id,
+                              patch: { syncFilePath: '' },
+                            });
+                          }}
+                        >
+                          <Icon icon="times" />
+                        </Button>
+                      </div>
+                    )}
                     {selectedEnvironment && selectedEnvironment.parentId !== workspaceId && (
                       <Label className="mr-2 ml-auto flex shrink-0 items-center gap-2 rounded-xs bg-(--hl-sm) px-2 py-1 text-sm text-(--color-font) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset data-pressed:bg-(--hl-sm)">
                         <span>Color:</span>

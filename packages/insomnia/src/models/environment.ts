@@ -25,7 +25,7 @@ export const vaultEnvironmentMaskValue = '••••••';
 export const canDuplicate = true;
 export const canSync = true;
 // for those keys do not need to add in model init method
-export const optionalKeys = ['kvPairData', 'environmentType'];
+export const optionalKeys = ['kvPairData', 'environmentType', 'syncFilePath'];
 
 export interface BaseEnvironment {
   name: string;
@@ -37,6 +37,8 @@ export interface BaseEnvironment {
   // For sync control
   isPrivate: boolean;
   environmentType?: EnvironmentType;
+  // Path to local file for external sync
+  syncFilePath?: string;
 }
 
 export enum EnvironmentType {

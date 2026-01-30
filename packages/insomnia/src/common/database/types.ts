@@ -108,6 +108,11 @@ export interface IDatabase {
   onChange(callback: ChangeListener): void;
 
   /**
+   * Unregister a change listener.
+   */
+  offChange(callback: ChangeListener): void;
+
+  /**
    * Remove a document and its descendants.
    */
   remove<T extends BaseModel>(doc: T): Promise<void>;

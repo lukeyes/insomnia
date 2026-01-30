@@ -1,6 +1,6 @@
 import React, { type FC } from 'react';
 
-import { useRootLoaderData } from '~/root';
+import { isLoggedIn } from '~/account/session';
 
 import { isGitProject, isRemoteProject } from '../../../models/project';
 import { useWorkspaceLoaderData } from '../../../routes/organization.$organizationId.project.$projectId.workspace.$workspaceId';
@@ -13,12 +13,16 @@ import { SyncDropdown } from './sync-dropdown';
 export const WorkspaceSyncDropdown: FC = () => {
   const { activeProject, activeWorkspace, gitRepository, activeWorkspaceMeta } = useWorkspaceLoaderData()!;
 
-  const { userSession } = useRootLoaderData()!;
-
   const { features } = useOrganizationPermissions();
 
-  if (!userSession.id) {
-    return null;
+  const [loggedIn, setLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    isLoggedIn().then(setLoggedIn);
+  }, []);
+
+  if (!loggedIn) {
+    return <LocalProjectBar />;
   }
 
   const isLocalProject =

@@ -31,7 +31,7 @@ type SettingsModalTabKey = 'data' | 'keyboard' | 'themes' | 'plugins' | 'general
 
 export const SettingsModal = forwardRef<SettingsModalHandle, ModalProps>((props, ref) => {
   const [defaultTabKey, setDefaultTabKey] = useState('general');
-  const { userSession, settings } = useRootLoaderData()!;
+  const { settings } = useRootLoaderData()!;
   const modalRef = useRef<ModalHandle>(null);
   const [keyboardClosable, setKeyboardClosable] = useState(true);
 
@@ -41,10 +41,10 @@ export const SettingsModal = forwardRef<SettingsModalHandle, ModalProps>((props,
     const checkAiPlugin = async () => {
       const plugins = await getBundlePlugins();
       const aiPlugin = plugins.find(p => p.name === AI_PLUGIN_NAME);
-      setShouldShowAiSettingsTab(!!aiPlugin && !!userSession.id);
+      setShouldShowAiSettingsTab(!!aiPlugin);
     };
     checkAiPlugin();
-  }, [userSession.id]);
+  }, []);
 
   useImperativeHandle(
     ref,
@@ -66,7 +66,6 @@ export const SettingsModal = forwardRef<SettingsModalHandle, ModalProps>((props,
         {getProductName()} Preferences
         <span className="faint txt-sm">
           &nbsp;&nbsp;–&nbsp; v{getAppVersion()}
-          {userSession.id && userSession.email ? ` – ${userSession.email}` : null}
         </span>
       </ModalHeader>
       <ModalBody noScroll>

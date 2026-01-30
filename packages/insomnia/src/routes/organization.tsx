@@ -1,50 +1,31 @@
 import { type CurrentPlan, type UserProfile } from 'insomnia-api';
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Link,
-  Menu,
-  MenuItem,
-  MenuTrigger,
-  Popover,
   ToggleButton,
   Tooltip,
   TooltipTrigger,
 } from 'react-aria-components';
-import { href, NavLink, Outlet, useLocation, useNavigate, useParams, useRouteLoaderData } from 'react-router';
+import { Outlet, useParams, useRouteLoaderData } from 'react-router';
 import * as reactUse from 'react-use';
 
-import { getAppWebsiteBaseURL } from '~/common/constants';
 import { userSession } from '~/models';
-import { isOwnerOfOrganization, isPersonalOrganization, type Organization } from '~/models/organization';
+import { type Organization } from '~/models/organization';
 import type { Settings } from '~/models/settings';
-import { isScratchpad } from '~/models/workspace';
 import { useRootLoaderData } from '~/root';
-import { useWorkspaceLoaderData } from '~/routes/organization.$organizationId.project.$projectId.workspace.$workspaceId';
-import { useSyncOrganizationsAndProjectsActionFetcher } from '~/routes/organization.sync-organizations-and-projects';
-import { useUntrackedProjectsLoaderFetcher } from '~/routes/untracked-projects';
-import { getLoginUrl } from '~/ui/auth-session-provider.client';
 import { CommandPalette } from '~/ui/components/command-palette';
 import { GitHubStarsButton } from '~/ui/components/github-stars-button';
-import { HeaderInviteButton } from '~/ui/components/header-invite-button';
-import { HeaderPlanIndicator } from '~/ui/components/header-plan-indicator';
-import { HeaderUserButton } from '~/ui/components/header-user-button';
 import { Hotkey } from '~/ui/components/hotkey';
 import { Icon } from '~/ui/components/icon';
 import { InsomniaLogo } from '~/ui/components/insomnia-icon';
-import { showModal } from '~/ui/components/modals';
-import { AlertModal } from '~/ui/components/modals/alert-modal';
-import { SettingsModal, showSettingsModal } from '~/ui/components/modals/settings-modal';
-import { OrganizationAvatar } from '~/ui/components/organization-avatar';
-import { PresentUsers } from '~/ui/components/present-users';
+import { showSettingsModal } from '~/ui/components/modals/settings-modal';
 import { InsomniaEventStreamProvider } from '~/ui/context/app/insomnia-event-stream-context';
 import { InsomniaTabProvider } from '~/ui/context/app/insomnia-tab-context';
 import { RunnerProvider } from '~/ui/context/app/runner-context';
 import { useCloseConnection } from '~/ui/hooks/use-close-connection';
-import { useOrganizationPermissions } from '~/ui/hooks/use-organization-features';
+import { useEnvironmentFileSync } from '~/ui/hooks/use-environment-file-sync';
 import { sortOrganizations } from '~/ui/organization-utils';
-import { trackTempOrganizationOpened } from '~/ui/temp-segment-tracking';
-import { AsyncTask, getInitialRouteForOrganization } from '~/utils/router';
 
 import type { Route } from './+types/organization';
 
@@ -185,65 +166,14 @@ const NetworkAndSyncIndicator = ({ asyncTaskStatus, settings, sync }: IndicatorP
 };
 
 const Component = ({ loaderData }: Route.ComponentProps) => {
-  const { organizations, user, currentPlan } = loaderData;
-  const { userSession, settings } = useRootLoaderData()!;
-  const { billing } = useOrganizationPermissions();
+  const { user } = loaderData;
+  const { settings } = useRootLoaderData()!;
 
-  const workspaceData = useWorkspaceLoaderData();
-
-  const navigate = useNavigate();
-  const isScratchpadWorkspace = workspaceData?.activeWorkspace && isScratchpad(workspaceData.activeWorkspace);
-  const untrackedProjectsFetcher = useUntrackedProjectsLoaderFetcher();
-  const { organizationId, projectId } = useParams() as {
+  const { organizationId } = useParams() as {
     organizationId: string;
     projectId?: string;
     workspaceId?: string;
   };
-
-  const location = useLocation();
-  const asyncTaskList = location.state?.asyncTaskList as AsyncTask[];
-
-  const syncOrgsAndProjectsFetcher = useSyncOrganizationsAndProjectsActionFetcher();
-
-  const asyncTaskStatus = syncOrgsAndProjectsFetcher.data?.error ? 'error' : syncOrgsAndProjectsFetcher.state;
-
-  const syncOrgsAndProjects = useCallback(() => {
-    const submit = syncOrgsAndProjectsFetcher.submit;
-
-    submit({
-      organizationId,
-      projectId: projectId || '',
-      asyncTaskList,
-    });
-  }, [asyncTaskList, organizationId, syncOrgsAndProjectsFetcher.submit, projectId]);
-
-  useEffect(() => {
-    // each route navigation will change history state, only submit this action when the asyncTaskList state is not empty
-    // currently we have 2 cases that will set the asyncTaskList state
-    // 1. first entry
-    // 2. when user switch to another organization
-    if (asyncTaskList?.length) {
-      syncOrgsAndProjects();
-    }
-  }, [organizationId, asyncTaskList, syncOrgsAndProjects]);
-
-  useEffect(() => {
-    const isIdleAndUninitialized = untrackedProjectsFetcher.state === 'idle' && !untrackedProjectsFetcher.data;
-    if (isIdleAndUninitialized) {
-      untrackedProjectsFetcher.load();
-    }
-  }, [organizationId, untrackedProjectsFetcher]);
-
-  // TODO(INS-1912): Remove in 12.5
-  useEffect(() => {
-    if (organizationId) {
-      trackTempOrganizationOpened(organizationId);
-    }
-  }, [organizationId]);
-
-  const untrackedProjects = untrackedProjectsFetcher.data?.untrackedProjects || [];
-  const untrackedWorkspaces = untrackedProjectsFetcher.data?.untrackedWorkspaces || [];
-  const hasUntrackedData = untrackedProjects.length > 0 || untrackedWorkspaces.length > 0;
 
   const [isOrganizationSidebarOpen, setIsOrganizationSidebarOpen] = reactUse.useLocalStorage(
     'organizationSidebarOpen',
@@ -254,7 +184,14 @@ const Component = ({ loaderData }: Route.ComponentProps) => {
     organizationId,
   });
 
+  useEnvironmentFileSync();
+
   const [isMinimal, setIsMinimal] = reactUse.useLocalStorage('isMinimal', false);
+
+  const asyncTaskStatus = 'idle';
+
+  const syncOrgsAndProjects = () => {};
+
   return (
     <InsomniaEventStreamProvider>
       <InsomniaTabProvider>
@@ -271,162 +208,31 @@ const Component = ({ loaderData }: Route.ComponentProps) => {
                   {!user ? <GitHubStarsButton /> : null}
                 </div>
                 <CommandPalette />
-                <div className="flex min-w-min items-center justify-end gap-(--padding-sm) space-x-3 p-2">
-                  {user ? (
-                    <Fragment>
-                      <PresentUsers />
-                      <HeaderInviteButton
-                        organizationId={organizationId}
-                        className="border border-solid border-(--hl-md) bg-(--color-surprise) font-semibold text-(--color-font-surprise)"
-                      />
-                      <HeaderPlanIndicator isMinimal={isMinimal} />
-                      <HeaderUserButton user={user} currentPlan={currentPlan} isMinimal={isMinimal} />
-                    </Fragment>
-                  ) : (
-                    <Fragment>
-                      <NavLink
-                        to={href('/auth/login')}
-                        className="flex items-center justify-center gap-2 rounded-xs border border-solid border-(--hl-md) px-4 py-1 text-sm font-semibold text-(--color-font) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm)"
-                      >
-                        Login
-                      </NavLink>
-                      <NavLink
-                        className="flex items-center justify-center gap-2 rounded-xs bg-(--color-surprise) px-4 py-1 text-sm font-semibold text-(--color-font-surprise) ring-1 ring-transparent transition-all focus:bg-[rgba(var(--color-surprise-rgb),0.9)] focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-[rgba(var(--color-surprise-rgb),0.8)]"
-                        to={href('/auth/login')}
-                      >
-                        Sign up for free
-                      </NavLink>
-                    </Fragment>
-                  )}
-                </div>
+                <div className="flex min-w-min items-center justify-end gap-(--padding-sm) space-x-3 p-2" />
               </header>
             )}
             {isOrganizationSidebarOpen && (
               <div className={`overflow-hidden [grid-area:Navbar] ${isOrganizationSidebarOpen ? '' : 'hidden'}`}>
                 <nav className="flex h-full w-full flex-col place-content-stretch items-center gap-(--padding-md) overflow-y-auto py-(--padding-md)">
-                  {organizations.map(organization => {
-                    const isActive = organization.id === organizationId;
-
-                    return (
-                      <TooltipTrigger key={organization.id}>
-                        <Link className="relative outline-hidden">
-                          <div
-                            className={`box-border flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-md bg-linear-to-br from-[#4000BF] to-[#154B62] font-bold text-(--color-font-surprise) outline-[3px] outline-offset-[3px] transition-all duration-150 select-none hover:no-underline active:outline-solid ${
-                              isActive
-                                ? 'outline-(--color-font)'
-                                : 'outline-transparent hover:outline-(--hl-md) focus:outline-(--hl-md)'
-                            }`}
-                            onClick={async () => {
-                              const routeForOrganization = await getInitialRouteForOrganization({
-                                organizationId: organization.id,
-                              });
-                              navigate(routeForOrganization, {
-                                state: {
-                                  asyncTaskList: [
-                                    // we only need sync projects when user switch to another organization
-                                    AsyncTask.SyncProjects,
-                                  ],
-                                },
-                              });
-                            }}
-                          >
-                            {isPersonalOrganization(organization) &&
-                            isOwnerOfOrganization({
-                              organization,
-                              accountId: userSession.accountId || '',
-                            }) ? (
-                              <div className="flex items-center justify-center">
-                                <Icon icon="home" />
-                                <Icon
-                                  className={`absolute -top-1 -right-1 z-10 h-4 w-4 transition-opacity ease-in-out ${billing?.expirationErrorMessage ? 'text-(--color-danger)' : 'text-(--color-warning)'} ${isActive && (billing.expirationErrorMessage || billing.expirationWarningMessage) ? 'opacity-100' : 'opacity-0'} `}
-                                  icon="exclamation-circle"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center">
-                                <OrganizationAvatar
-                                  alt={organization.display_name}
-                                  src={organization.branding?.logo_url || ''}
-                                />
-
-                                <Icon
-                                  className={`absolute -top-1 -right-1 z-10 h-4 w-4 transition-opacity ease-in-out ${billing?.expirationErrorMessage ? 'text-(--color-danger)' : 'text-(--color-warning)'} ${isActive && (billing.expirationErrorMessage || billing.expirationWarningMessage) ? 'opacity-100' : 'opacity-0'} `}
-                                  icon="exclamation-circle"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-                        <Tooltip
-                          placement="right"
-                          offset={8}
-                          className="max-h-[85vh] min-w-max overflow-y-auto rounded-md border border-solid border-(--hl-sm) bg-(--color-bg) px-4 py-2 text-sm text-(--color-font) shadow-lg select-none focus:outline-hidden"
-                        >
-                          <span>{organization.display_name}</span>
-                        </Tooltip>
-                      </TooltipTrigger>
-                    );
-                  })}
-                  <MenuTrigger>
-                    <Button className="box-border flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-md p-(--padding-sm) font-bold text-(--color-font) outline-hidden transition-all duration-150 select-none hover:no-underline">
-                      <Icon icon="plus" />
-                    </Button>
-                    <Popover placement="left" className="min-w-max">
-                      <Menu
-                        onAction={action => {
-                          if (action === 'join-organization') {
-                            window.main.openInBrowser(getLoginUrl());
-                          }
-
-                          if (action === 'new-organization') {
-                            // If user is in the scratchpad workspace redirect them to the login page
-                            if (isScratchpadWorkspace) {
-                              window.main.openInBrowser(getLoginUrl());
-                            }
-
-                            if (!currentPlan) {
-                              return;
-                            }
-
-                            if (currentPlan.type === 'enterprise-member') {
-                              // If user has a team or enterprise member plan show them an alert
-                              showModal(AlertModal, {
-                                title: 'Cannot create new organization.',
-                                message:
-                                  'Your Insomnia account is tied to the enterprise corporate account. Please ask the owner of the enterprise billing to create one for you.',
-                              });
-                            } else if (['free', 'individual'].includes(currentPlan.type)) {
-                              // If user has a free or individual plan redirect them to the landing page
-                              window.main.openInBrowser(`${getAppWebsiteBaseURL()}/app/landing-page`);
-                            } else {
-                              // If user has a team or enterprise plan redirect them to the create organization page
-                              window.main.openInBrowser(
-                                `${getAppWebsiteBaseURL()}/app/dashboard/organizations?create_org=true`,
-                              );
-                            }
-                          }
-                        }}
-                        className="max-h-[85vh] min-w-max overflow-y-auto rounded-md border border-solid border-(--hl-sm) bg-(--color-bg) py-2 text-sm shadow-lg select-none focus:outline-hidden"
+                  <TooltipTrigger>
+                    <Link className="relative outline-hidden">
+                      <div
+                        className="box-border flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-md bg-linear-to-br from-[#4000BF] to-[#154B62] font-bold text-(--color-font-surprise) outline-[3px] outline-offset-[3px] transition-all duration-150 select-none hover:no-underline active:outline-solid outline-(--color-font)"
                       >
-                        <MenuItem
-                          id="join-organization"
-                          className="flex h-(--line-height-xs) w-full items-center gap-2 bg-transparent px-(--padding-md) whitespace-nowrap text-(--color-font) transition-colors hover:bg-(--hl-sm) focus:bg-(--hl-xs) focus:outline-hidden disabled:cursor-not-allowed aria-selected:font-bold"
-                          aria-label="Join an organization"
-                        >
-                          <Icon icon="city" />
-                          <span>Join an organization</span>
-                        </MenuItem>
-                        <MenuItem
-                          id="new-organization"
-                          className="flex h-(--line-height-xs) w-full items-center gap-2 bg-transparent px-(--padding-md) whitespace-nowrap text-(--color-font) transition-colors hover:bg-(--hl-sm) focus:bg-(--hl-xs) focus:outline-hidden disabled:cursor-not-allowed aria-selected:font-bold"
-                          aria-label="Create new organization"
-                        >
-                          <Icon icon="sign-out" />
-                          <span>Create a new organization</span>
-                        </MenuItem>
-                      </Menu>
-                    </Popover>
-                  </MenuTrigger>
+                        <div className="flex items-center justify-center">
+                          <Icon icon="home" />
+                        </div>
+                      </div>
+                    </Link>
+                    <Tooltip
+                      placement="right"
+                      offset={8}
+                      className="max-h-[85vh] min-w-max overflow-y-auto rounded-md border border-solid border-(--hl-sm) bg-(--color-bg) px-4 py-2 text-sm text-(--color-font) shadow-lg select-none focus:outline-hidden"
+                    >
+                      <span>Scratch Pad</span>
+                    </Tooltip>
+                  </TooltipTrigger>
+                  <div className="flex-1" />
                 </nav>
               </div>
             )}
@@ -531,34 +337,6 @@ const Component = ({ loaderData }: Route.ComponentProps) => {
                       <Hotkey keyBindings={settings.hotKeyRegistry.preferences_showGeneral} />
                     </Tooltip>
                   </TooltipTrigger>
-                  {!isScratchpadWorkspace && hasUntrackedData && !isMinimal ? (
-                    <div>
-                      <Button
-                        className="flex h-full items-center justify-center gap-2 px-4 py-1 text-xs text-(--color-warning) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm)"
-                        onPress={() => showModal(SettingsModal, { tab: 'data' })}
-                      >
-                        <Icon icon="exclamation-circle" /> We have detected orphaned projects on your computer, click
-                        here to view them.
-                      </Button>
-                    </div>
-                  ) : null}
-                  {!isScratchpadWorkspace && hasUntrackedData && isMinimal ? (
-                    <TooltipTrigger delay={500}>
-                      <Button
-                        className="flex h-full items-center justify-center gap-2 px-4 py-1 text-xs text-(--color-warning) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm)"
-                        onPress={() => showModal(SettingsModal, { tab: 'data' })}
-                      >
-                        <Icon icon="exclamation-circle" />
-                      </Button>
-                      <Tooltip
-                        placement="top"
-                        offset={8}
-                        className="flex max-h-[85vh] min-w-max items-center gap-2 overflow-y-auto rounded-md border border-solid border-(--hl-sm) bg-(--color-bg) px-4 py-2 text-sm text-(--color-font) shadow-lg select-none focus:outline-hidden"
-                      >
-                        We have detected orphaned projects on your computer, click here to view them.
-                      </Tooltip>
-                    </TooltipTrigger>
-                  ) : null}
                   {isMinimal && (
                     <NetworkAndSyncIndicator
                       asyncTaskStatus={asyncTaskStatus}
@@ -592,31 +370,7 @@ const Component = ({ loaderData }: Route.ComponentProps) => {
                     )}
                   </div>
                   {isMinimal && (
-                    <div className="flex items-center justify-end gap-(--padding-sm) p-2">
-                      {user ? (
-                        <Fragment>
-                          <PresentUsers />
-                          <HeaderInviteButton className="text-(--color-font)" organizationId={organizationId} />
-                          <HeaderPlanIndicator isMinimal={isMinimal} />
-                          <HeaderUserButton user={user} currentPlan={currentPlan} isMinimal={isMinimal} />
-                        </Fragment>
-                      ) : (
-                        <Fragment>
-                          <NavLink
-                            to={href('/auth/login')}
-                            className="flex items-center justify-center gap-2 rounded-xs border border-solid border-(--hl-md) px-4 py-1 text-sm font-semibold text-(--color-font) ring-1 ring-transparent transition-all hover:bg-(--hl-xs) focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-(--hl-sm)"
-                          >
-                            Login
-                          </NavLink>
-                          <NavLink
-                            className="flex items-center justify-center gap-2 rounded-xs bg-(--color-surprise) px-4 py-1 text-sm font-semibold text-(--color-font-surprise) ring-1 ring-transparent transition-all focus:bg-[rgba(var(--color-surprise-rgb),0.9)] focus:ring-(--hl-md) focus:ring-inset aria-pressed:bg-[rgba(var(--color-surprise-rgb),0.8)]"
-                            to={href('/auth/login')}
-                          >
-                            Sign up for free
-                          </NavLink>
-                        </Fragment>
-                      )}
-                    </div>
+                    <div className="flex items-center justify-end gap-(--padding-sm) p-2" />
                   )}
                 </div>
               </div>

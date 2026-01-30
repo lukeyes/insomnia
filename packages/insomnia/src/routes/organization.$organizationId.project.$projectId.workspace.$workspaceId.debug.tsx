@@ -1,7 +1,7 @@
 import type { IconName } from '@fortawesome/fontawesome-svg-core';
 import type { ServiceError, StatusObject } from '@grpc/grpc-js';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Breadcrumb,
   Breadcrumbs,
@@ -1294,17 +1294,6 @@ const Debug = () => {
 export default DebugEntry;
 
 const ScratchPadTutorialPanel = () => {
-  const [signUpTipDismissedState, setSignUpTipDismissedState] = useLocalStorage<{
-    dismissed: boolean;
-    dismissedAt: number;
-  }>('scratchpad-sign-up-tip-dismissed', { dismissed: false, dismissedAt: 0 });
-
-  const [currentTime] = useState(() => Date.now());
-
-  const handleDismiss = () => {
-    setSignUpTipDismissedState({ dismissed: true, dismissedAt: Date.now() });
-  };
-
   const {
     organizationId,
     projectId,
@@ -1318,48 +1307,9 @@ const ScratchPadTutorialPanel = () => {
   };
 
   const navigate = useNavigate();
-  const handleSignUp = () => {
-    navigate(href('/auth/login'));
-  };
-
-  const shouldShowSignUpTip = useMemo(() => {
-    if (!signUpTipDismissedState || !signUpTipDismissedState.dismissed) {
-      return true;
-    }
-
-    const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
-
-    return currentTime - signUpTipDismissedState.dismissedAt >= twoWeeksInMs;
-  }, [signUpTipDismissedState, currentTime]);
 
   return (
     <>
-      {shouldShowSignUpTip ? (
-        <div className="m-2 rounded-lg border! border-solid border-(--hl-sm) bg-(--color-bg) p-4">
-          <div className="flex flex-col items-start justify-between">
-            <div className="flex w-full justify-between">
-              <h3 className="mb-2 text-lg font-semibold text-(--color-font)">Unlock full features</h3>
-              <Button
-                onPress={handleDismiss}
-                className="ml-4 flex h-6 w-6 items-center justify-center rounded-xs text-(--color-font-secondary) transition-colors hover:bg-(--hl-xs) hover:text-(--color-font) focus:outline-hidden"
-                aria-label="Dismiss tutorial"
-              >
-                <Icon icon="times" className="h-3 w-3" />
-              </Button>
-            </div>
-            <p className="mb-4 text-sm text-(--color-font-secondary)">
-              Create multiple collections, design APIs, MCP clients, manage projects, and collaborate with your team.
-            </p>
-            <Button
-              onPress={handleSignUp}
-              className="rounded-md bg-(--color-surprise) px-4 py-2 text-sm font-medium text-white transition-colors"
-            >
-              Sign up for free
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
       <GridList
         aria-label="Scope filter"
         items={scratchPadTutorialList}

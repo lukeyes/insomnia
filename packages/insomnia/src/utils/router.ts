@@ -3,8 +3,7 @@ import { href, matchPath, type PathMatch, useFetcher } from 'react-router';
 
 import { database } from '../common/database';
 import * as models from '../models';
-import type { Organization } from '../models/organization';
-import { findPersonalOrganization, SCRATCHPAD_ORGANIZATION_ID } from '../models/organization';
+import { SCRATCHPAD_ORGANIZATION_ID } from '../models/organization';
 import { type Project, SCRATCHPAD_PROJECT_ID } from '../models/project';
 import { scopeToActivity, SCRATCHPAD_WORKSPACE_ID } from '../models/workspace';
 export const enum AsyncTask {
@@ -86,66 +85,11 @@ export const getInitialRouteForOrganization = async ({
 };
 
 export const getInitialEntry = async () => {
-  // If the user has not seen the onboarding, then show it
-  // Otherwise if the user is not logged in and has not logged in before, then show the login
-  // Otherwise if the user is logged in, then show the organization
-  try {
-    const hasSeenOnboardingV12 = Boolean(window.localStorage.getItem('hasSeenOnboardingV12'));
-
-    if (!hasSeenOnboardingV12) {
-      return href('/onboarding/*', {
-        '*': '',
-      });
-    }
-
-    const hasUserLoggedInBefore = window.localStorage.getItem('hasUserLoggedInBefore');
-
-    const user = await models.userSession.getOrCreate();
-    if (user.id) {
-      const organizations = JSON.parse(
-        localStorage.getItem(`${user.accountId}:organizations`) || '[]',
-      ) as Organization[];
-      const personalOrganization = findPersonalOrganization(organizations, user.accountId);
-      // If the personal org is not found in local storage go fetch from org index loader
-      if (!personalOrganization) {
-        return href('/organization');
-      }
-
-      let organizationId = personalOrganization.id;
-
-      // Check if the user has a last visited organization
-      try {
-        const lastVisitedOrganizationId = localStorage.getItem('lastVisitedOrganizationId');
-        if (lastVisitedOrganizationId && organizations.find(o => o.id === lastVisitedOrganizationId)) {
-          organizationId = lastVisitedOrganizationId;
-        }
-      } catch {}
-
-      return {
-        pathname: await getInitialRouteForOrganization({ organizationId, navigateToWorkspace: true }),
-        state: {
-          // async task need to execute when first entry
-          asyncTaskList: [AsyncTask.SyncOrganization, AsyncTask.MigrateProjects, AsyncTask.SyncProjects],
-        },
-      };
-    }
-
-    if (hasUserLoggedInBefore) {
-      return href('/auth/login');
-    }
-
-    return href('/organization/:organizationId/project/:projectId/workspace/:workspaceId/debug', {
-      organizationId: SCRATCHPAD_ORGANIZATION_ID,
-      projectId: SCRATCHPAD_PROJECT_ID,
-      workspaceId: SCRATCHPAD_WORKSPACE_ID,
-    });
-  } catch {
-    return href('/organization/:organizationId/project/:projectId/workspace/:workspaceId/debug', {
-      organizationId: SCRATCHPAD_ORGANIZATION_ID,
-      projectId: SCRATCHPAD_PROJECT_ID,
-      workspaceId: SCRATCHPAD_WORKSPACE_ID,
-    });
-  }
+  return href('/organization/:organizationId/project/:projectId/workspace/:workspaceId/debug', {
+    organizationId: SCRATCHPAD_ORGANIZATION_ID,
+    projectId: SCRATCHPAD_PROJECT_ID,
+    workspaceId: SCRATCHPAD_WORKSPACE_ID,
+  });
 };
 
 type Override<T, R> = Omit<T, keyof R> & R;

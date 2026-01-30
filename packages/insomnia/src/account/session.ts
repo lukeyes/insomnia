@@ -79,7 +79,7 @@ export async function getAccountId() {
 
 /** Check if we (think) we have a session */
 export async function isLoggedIn() {
-  return Boolean(await getCurrentSessionId());
+  return false;
 }
 
 /** Log out and delete session data */

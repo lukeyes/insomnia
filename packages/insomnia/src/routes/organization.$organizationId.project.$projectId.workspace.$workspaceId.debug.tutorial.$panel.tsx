@@ -1,7 +1,7 @@
 import type { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core';
 import { Button } from 'react-aria-components';
 import { Panel } from 'react-resizable-panels';
-import { href, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { ErrorBoundary } from '~/ui/components/error-boundary';
 import { Icon } from '~/ui/components/icon';
@@ -59,8 +59,24 @@ export const scratchPadTutorialList: {
 const TutorialContent = ({ panel }: { panel?: string }) => {
   const selectedTutorial = scratchPadTutorialList.find(t => t.id === panel);
   const navigate = useNavigate();
-  const handleSignUp = () => {
-    navigate(href('/auth/login'));
+
+  const { organizationId, projectId, workspaceId } = useParams<{
+    organizationId: string;
+    projectId: string;
+    workspaceId: string;
+  }>();
+
+  const handleCreate = () => {
+    if (panel === 'environment') {
+      navigate(
+        `/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/environment`,
+      );
+      return;
+    }
+
+    if (panel === 'document' || panel === 'collection' || panel === 'mcp' || panel === 'mock-server') {
+      navigate(`/organization/${organizationId}/project/${projectId}/workspace/new`);
+    }
   };
 
   if (!selectedTutorial) {
@@ -75,10 +91,10 @@ const TutorialContent = ({ panel }: { panel?: string }) => {
 
         <div className="mb-8 space-y-4">
           <Button
-            onPress={handleSignUp}
+            onPress={handleCreate}
             className="rounded-md bg-(--color-surprise) px-6 py-2 text-white transition-colors"
           >
-            Sign Up to create {selectedTutorial.name}
+            Create {selectedTutorial.name}
           </Button>
         </div>
       </div>
