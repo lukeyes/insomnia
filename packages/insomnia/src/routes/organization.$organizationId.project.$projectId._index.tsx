@@ -477,10 +477,6 @@ const Component = () => {
     projects,
     allFilesCount,
     environmentsCount,
-    collectionsCount,
-    mockServersCount,
-    mcpClientsCount,
-    documentsCount,
     projectsCount,
     learningFeaturePromise,
     remoteFilesPromise,
@@ -566,6 +562,7 @@ const Component = () => {
 
   const filteredFiles = allFiles
     .filter(w => (workspaceListScope !== 'all' ? w.scope === workspaceListScope : true))
+    .filter(w => w.scope === 'environment' || w.scope === 'unsynced')
     .filter(workspace => {
       if (!workspaceListFilter) return true;
       const filterStr = workspaceListFilter.toLowerCase();
@@ -654,28 +651,9 @@ const Component = () => {
     isOpen: false,
   });
 
-  const createNewCollection = () => setNewWorkspaceModalState({ scope: 'collection', isOpen: true });
-  const createNewDocument = () => setNewWorkspaceModalState({ scope: 'design', isOpen: true });
-  const createNewMockServer = () =>
-    canCreateMockServer && setNewWorkspaceModalState({ scope: 'mock-server', isOpen: true });
   const createNewGlobalEnvironment = () => setNewWorkspaceModalState({ scope: 'environment', isOpen: true });
-  const createNewMcpClient = () => setNewWorkspaceModalState({ scope: 'mcp', isOpen: true });
 
-  const createNewCollectionWithRequest = () => {
-    if (!activeProject) {
-      return;
-    }
 
-    createNewWorkspaceFetcher.submit({
-      organizationId,
-      projectId,
-      name: 'My first collection',
-      scope: 'collection',
-      withRequest: true,
-    });
-  };
-
-  const canCreateMockServer = activeProject?._id;
 
   const createInProjectActionList: {
     id: string;
@@ -683,34 +661,6 @@ const Component = () => {
     icon: IconProp;
     action: () => void;
   }[] = [
-    {
-      id: 'new-collection',
-      name: 'Request collection',
-      icon: 'bars',
-      action: createNewCollection,
-    },
-    {
-      id: 'new-document',
-      name: 'Design document',
-      icon: 'file',
-      action: createNewDocument,
-    },
-    {
-      id: 'new-mcp-client',
-      name: 'MCP Client',
-      icon: ['fac', 'mcp'] as unknown as IconProp,
-      action: createNewMcpClient,
-    },
-    ...(canCreateMockServer
-      ? [
-          {
-            id: 'new-mock-server',
-            name: 'Mock Server',
-            icon: 'server' as IconName,
-            action: createNewMockServer,
-          },
-        ]
-      : []),
     {
       id: 'new-environment',
       name: 'Environment',
@@ -731,53 +681,9 @@ const Component = () => {
   }[] = [
     {
       id: 'all',
-      label: `All files (${allFilesCount})`,
+      label: `All environments (${allFilesCount})`,
       icon: 'border-all',
     },
-    {
-      id: 'design',
-      label: `Documents (${documentsCount})`,
-      icon: 'file',
-      action: {
-        icon: 'plus',
-        label: 'New design document',
-        run: createNewDocument,
-      },
-    },
-    {
-      id: 'collection',
-      label: `Collections (${collectionsCount})`,
-      icon: 'bars',
-      action: {
-        icon: 'plus',
-        label: 'New request collection',
-        run: createNewCollection,
-      },
-    },
-    {
-      id: 'mcp',
-      label: `MCP Clients (${mcpClientsCount})`,
-      icon: ['fac', 'mcp'] as unknown as IconProp,
-      action: {
-        icon: 'plus',
-        label: 'New mcp client',
-        run: createNewMcpClient,
-      },
-    },
-    ...(canCreateMockServer
-      ? [
-          {
-            id: 'mock-server',
-            label: `Mock (${mockServersCount})`,
-            icon: 'server' as IconName,
-            action: {
-              icon: 'plus' as IconName,
-              label: 'New Mock Server',
-              run: createNewMockServer,
-            },
-          },
-        ]
-      : []),
     {
       id: 'environment',
       label: `Environments (${environmentsCount})`,
@@ -1214,7 +1120,7 @@ const Component = () => {
                         return (
                           <div className="flex h-full w-full items-center justify-center">
                             <p className="notice subtle">
-                              No documents found for <strong>{workspaceListFilter}</strong>
+                              No environments found for <strong>{workspaceListFilter}</strong>
                             </p>
                           </div>
                         );
@@ -1223,8 +1129,8 @@ const Component = () => {
                       return (
                         <div className="flex w-full flex-col items-center justify-center gap-4">
                           <ProjectEmptyView
-                            onCreateRequestCollectionWithRequest={createNewCollectionWithRequest}
-                            onCreateDesignDocument={createNewDocument}
+                            onCreateRequestCollectionWithRequest={createNewGlobalEnvironment}
+                            onCreateDesignDocument={createNewGlobalEnvironment}
                             onImportFrom={() => setImportModalType('file')}
                           />
                           {createNewWorkspaceFetcher.data?.error && (

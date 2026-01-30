@@ -292,8 +292,7 @@ export const General: FC = () => {
       <BooleanSetting label="Send Anonymous Usage Statistics" setting="enableAnalytics" />
       <div className="py-2 pl-5 text-sm opacity-50">
         Help Kong improve its products by sending anonymous data about features and plugins used, hardware and
-        software configuration, statistics on number of requests, {strings.collection.plural.toLowerCase()},{' '}
-        {strings.document.plural.toLowerCase()}, etc.
+        software configuration, statistics on number of requests, {strings.environment.plural.toLowerCase()}, etc.
       </div>
       <div className="py-2 pl-5 text-sm opacity-50">
         Please note that this will not include personal data or any sensitive information, such as request data,

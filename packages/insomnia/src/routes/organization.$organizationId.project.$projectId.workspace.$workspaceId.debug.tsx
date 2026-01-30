@@ -64,7 +64,6 @@ import type { RequestGroupMeta } from '~/models/request-group-meta';
 import { getByParentId as getRequestMetaByParentId } from '~/models/request-meta';
 import { isSocketIORequest, isSocketIORequestId, type SocketIORequest } from '~/models/socket-io-request';
 import { isWebSocketRequest, isWebSocketRequestId, type WebSocketRequest } from '~/models/websocket-request';
-import { isDesign } from '~/models/workspace';
 import { useRootLoaderData } from '~/root';
 import {
   type Child,
@@ -84,7 +83,6 @@ import Tutorial, {
 import { useToggleExpandAllActionFetcher } from '~/routes/organization.$organizationId.project.$projectId.workspace.$workspaceId.toggle-expand-all';
 import { SegmentEvent } from '~/ui/analytics';
 import { DropdownHint } from '~/ui/components/base/dropdown/dropdown-hint';
-import { DocumentTab } from '~/ui/components/document-tab';
 import { RequestActionsDropdown } from '~/ui/components/dropdowns/request-actions-dropdown';
 import { RequestGroupActionsDropdown } from '~/ui/components/dropdowns/request-group-actions-dropdown';
 import { WorkspaceDropdown } from '~/ui/components/dropdowns/workspace-dropdown';
@@ -849,9 +847,6 @@ const Debug = () => {
                 </Breadcrumb>
               </Breadcrumbs>
             </div>
-            {isDesign(activeWorkspace) && (
-              <DocumentTab organizationId={organizationId} projectId={projectId} workspaceId={workspaceId} />
-            )}
             <div className="flex w-full flex-col items-start gap-2 p-(--padding-sm)">
               <div className="flex w-full items-center justify-between gap-2">
                 <EnvironmentPicker

@@ -44,7 +44,9 @@ async function getAllLocalFiles({ projectId }: { projectId: string }) {
     },
   });
 
-  const files: InsomniaFile[] = projectWorkspaces.map(workspace => {
+  const files: InsomniaFile[] = projectWorkspaces
+    .filter(w => w.scope === 'environment')
+    .map(workspace => {
     const apiSpec = apiSpecs.find(spec => spec.parentId === workspace._id);
     const mockServer = mockServers.find(mock => mock.parentId === workspace._id);
     let spec: ParsedApiSpec['contents'] = null;

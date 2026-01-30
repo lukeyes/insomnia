@@ -16,38 +16,6 @@ export const scratchPadTutorialList: {
   icon: IconName | [IconPrefix, IconName];
 }[] = [
   {
-    id: 'document',
-    title: `Documents`,
-    name: 'documents',
-    desc: 'Design or test an API by adding a document.',
-    learnMoreLink: 'https://developer.konghq.com/insomnia/documents/',
-    icon: 'file',
-  },
-  {
-    id: 'collection',
-    title: `Collections`,
-    name: 'collections',
-    desc: 'Use collections to tests APIs and run automated tests.',
-    learnMoreLink: 'https://developer.konghq.com/insomnia/collections/',
-    icon: 'bars',
-  },
-  {
-    id: 'mcp',
-    title: `MCP Clients`,
-    name: 'MCP clients',
-    desc: 'Use MCP clients to connect external Model Context Protocol (MCP) Servers to access AI-ready tools, prompts, and resource.',
-    learnMoreLink: 'https://developer.konghq.com/insomnia/mcp-clients-in-insomnia/',
-    icon: ['fac', 'mcp'] as unknown as [IconPrefix, IconName],
-  },
-  {
-    id: 'mock-server',
-    title: `Mocks`,
-    name: 'mock servers',
-    desc: 'Use mock servers to simulate API endpoints without a live backend.',
-    learnMoreLink: 'https://developer.konghq.com/insomnia/mock-servers/',
-    icon: 'server',
-  },
-  {
     id: 'environment',
     title: `Environments`,
     name: 'environments',
@@ -73,11 +41,6 @@ const TutorialContent = ({ panel }: { panel?: string }) => {
       navigate(
         `/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/environment`,
       );
-      return;
-    }
-
-    if (panel === 'document' || panel === 'collection' || panel === 'mcp' || panel === 'mock-server') {
-      navigate(`/organization/${organizationId}/project/${projectId}/workspace/new`);
     }
   };
 
